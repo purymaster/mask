@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>마스크 검색</title>
+	<style>
+		* {line-height:1.5em; margin:0; padding:0; box-sizing:border-box; font-family:'Helvetica Neue', 'Apple SD Gothic Neo', 'Droid Sans', 'Malgun Gothic', '맑은 고딕', Dotum, 돋움, sans-serif; font-size:100%; color:#333; list-style:none; word-break:keep-all;}
+		body {padding:15px;}
+		h1 {margin-bottom:15px; font-size:24px; text-align:center;}
+		.popup {display:none; margin-bottom:15px; padding:15px; background:darkgreen; font-size:18px; font-weight:700; color:#fff; text-align:center;}
+		.popup.on {display:block;}
+		caption {overflow:hidden; position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip:rect(0 0 0 0);}
+		fieldset {border:0; font-size:0;}
+		fieldset input {width:calc(100% - 100px); height:40px; line-height:40px; padding:0 15px; border:1px solid #333; border-radius:0; font-size:16px; -webkit-appearance:none; -moz-appearance:none; -ms-appearance:none; -o-appearance:none;}
+		fieldset button {width:100px; line-height:38px; border:1px solid #333; border-left:0; background:#efefef; font-size:16px; cursor:pointer;}
+		.reload {line-height:2em; font-size:14px; text-align:right;}
+		table {width:100%; margin-top:15px; table-layout:fixed; border-top:1px solid #333; border-right:1px solid #333; background:#fff; font-size:14px; border-spacing:0; border-collapse:collapse;}
+		table th,
+		table td {padding:.5em .3em; border-bottom:1px solid #333; border-left:1px solid #333;}
+		table thead th {background:azure;}
+		table tr td:nth-child(n+3) {text-align:center;}
+		table tr td.plenty {background:darkgreen; color:#fff;}
+		table tr td.some {background:gold;}
+		table tr td.few {background:firebrick; color:#fff;}
+		table tr td.empty {background:#ccc;}
+		table tr td.break {background:#333; color:#fff;}
+
+		@media (max-width:1024px) {
+			.table_wrap {overflow:hidden;}
+			table,
+			tbody,
+			tr,
+			th,
+			td {display:block; float:left; clear:both; width:100%; border:0; text-align:left !important;}
+			thead {display:none;}
+			table tr {padding:15px 0; border-bottom:1px solid #333;}
+			table tr:first-child {border-top:1px solid #333;}
+			table th,
+			table td {line-height:1.5em; padding:0; border:0;}
+			table tr td:nth-child(1) {margin-bottom:15px; font-size:16px; font-weight:700;}
+			table tr td:nth-child(3) {display:none;}
+			table tr td:nth-child(4):before {content:'입고시간 : ';}
+			table tr td:nth-child(5) {width:auto; margin-top:15px; padding:5px; border:1px solid #333;}
+		}
+	</style>
+</head>
+
+<body>
+	<p class="popup">수량이 충분한 마스크 판매처가 확인되었습니다.</p>
+	<h1>마스크 검색</h1>
+	<form>
+		<fieldset>
+			<input type="text" placeholder="주소입력">
+			<button type="submit">검색</button>
+		</fieldset>
+	</form>
+	<p class="reload"><span class="timer"></span>초 후 새로고침</p>
+	<div class="table_wrap">
+		<table>
+			<caption>마스크 판매 정보</caption>
+			<colgroup>
+				<col style="width:200px;">
+				<col>
+				<col style="width:150px;">
+				<col style="width:150px;">
+				<col style="width:80px;">
+			</colgroup>
+			<thead>
+				<tr>
+					<th scope="col">판매처</th>
+					<th scope="col">주소</th>
+					<th scope="col">데이터등록시간</th>
+					<th scope="col">입고시간</th>
+					<th scope="col">재고</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+	</div>
+
+	<script>
+		const dataTable = document.querySelector("tbody"),
+			form = document.querySelector("form"),
+			input = form.querySelector("input"),
+			timer = document.querySelector(".timer"),
+			spot = "spot";
+		let count = 60,
+			alertFlag = false;
+		timer.innerHTML = count;
+
+		function setCache() {
+			let currentData = input.value;
+			localStorage.setItem(spot, currentData);
+			getData(currentData);
+		};
+
+		function getLocation() {
+			form.addEventListener("submit", setCache);
+		};
+
+		function getMaskStock(amount) {
+			switch (amount) {
+				case "plenty":
+					return "100개이상";
+					break;
+				case "some":
+					return "30~99개";
+					break;
+				case "few":
+					return "2~29개";
+					break;
+				case "empty":
+					return "재고없음";
+					break;
+				case "break":
+					return "판매중지";
+					break;
+				default:
+					return "데이터없음";
+					break;
+			}
+		};
+
+		function getData(location) {
+			fetch(`https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json?address=${location}`)
+				.then(function(response) {
+					return response.json();
+				})
+				.then(function(json) {
+					const data = json.stores;
+					let dataWrap, dataName, dataAddr, dataUpdate, dataStock, dataStatus;
+					for (let i = 0; i < data.length; i++) {
+						if (data[i].remain_stat === "plenty") alertFlag = true;
+						dataWrap = document.createElement("tr");
+						dataName = document.createElement("td");
+						dataAddr = document.createElement("td");
+						dataUpdate = document.createElement("td");
+						dataStock = document.createElement("td");
+						dataStatus = document.createElement("td");
+						dataName.innerText = data[i].name;
+						dataAddr.innerText = data[i].addr || "데이터없음";
+						dataUpdate.innerText = data[i].created_at || "데이터없음";
+						dataStock.innerText = data[i].stock_at || "데이터없음";
+						dataStatus.innerText = getMaskStock(data[i].remain_stat);
+						dataStatus.classList.add(data[i].remain_stat);
+						dataWrap.appendChild(dataName);
+						dataWrap.appendChild(dataAddr);
+						dataWrap.appendChild(dataUpdate);
+						dataWrap.appendChild(dataStock);
+						dataWrap.appendChild(dataStatus);
+						dataTable.appendChild(dataWrap);
+					}
+					if (alertFlag) document.querySelector(".popup").classList.add('on');
+				});
+			getLocation();
+		};
+
+		(function init() {
+			setTimeout(function() {
+				location.reload();
+			}, 1000 * count);
+			setInterval(function() {
+				count--;
+				timer.innerText = count;
+			}, 1000);
+			let currentSpot = localStorage.getItem(spot);
+			input.value = currentSpot || "";
+			currentSpot = getData(currentSpot) || getLocation();
+		})();
+
+	</script>
+</body>
+
+</html>
