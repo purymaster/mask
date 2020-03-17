@@ -9,13 +9,17 @@
 		* {line-height:1.5em; margin:0; padding:0; box-sizing:border-box; font-family:'Helvetica Neue', 'Apple SD Gothic Neo', 'Droid Sans', 'Malgun Gothic', '맑은 고딕', Dotum, 돋움, sans-serif; font-size:100%; color:#333; list-style:none; word-break:keep-all;}
 		body {padding:15px;}
 		h1 {margin-bottom:15px; font-size:24px; text-align:center;}
-		.popup {display:none; margin-bottom:15px; padding:15px; background:darkgreen; font-size:18px; font-weight:700; color:#fff; text-align:center;}
+		.popup {display:none; margin-bottom:15px; padding:15px; line-height:1.4em; background:darkgreen; font-size:18px; font-weight:700; color:#fff; text-align:center;}
 		.popup.on {display:block;}
 		caption {overflow:hidden; position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip:rect(0 0 0 0);}
+		form {margin-bottom:15px;}
 		fieldset {border:0; font-size:0;}
 		fieldset input {width:calc(100% - 100px); height:40px; line-height:40px; padding:0 15px; border:1px solid #333; border-radius:0; font-size:16px; -webkit-appearance:none; -moz-appearance:none; -ms-appearance:none; -o-appearance:none;}
 		fieldset button {width:100px; line-height:38px; border:1px solid #333; border-left:0; background:#efefef; font-size:16px; cursor:pointer;}
-		.reload {line-height:2em; font-size:14px; text-align:right;}
+		.today,
+		.reload {line-height:1.5em; font-size:14px; text-align:right;}
+		.today span,
+		.reload span {color:firebrick; font-weight:700;}
 		table {width:100%; margin-top:15px; table-layout:fixed; border-top:1px solid #333; border-right:1px solid #333; background:#fff; font-size:14px; border-spacing:0; border-collapse:collapse;}
 		table th,
 		table td {padding:.5em .3em; border-bottom:1px solid #333; border-left:1px solid #333;}
@@ -56,6 +60,7 @@
 			<button type="submit">검색</button>
 		</fieldset>
 	</form>
+	<p class="today">출생년도 끝자리 <span class="year"></span> 구매가능</p>
 	<p class="reload"><span class="timer"></span>초 후 새로고침</p>
 	<div class="table_wrap">
 		<table>
@@ -86,6 +91,7 @@
 			form = document.querySelector("form"),
 			input = form.querySelector("input"),
 			timer = document.querySelector(".timer"),
+			today = document.querySelector(".year"),
 			spot = "spot";
 		let count = 60,
 			alertFlag = false;
@@ -100,6 +106,29 @@
 		function getLocation() {
 			form.addEventListener("submit", setCache);
 		};
+
+		function setBuyYear(today) {
+			switch (today) {
+				case 1: 
+					return "1, 6";
+					break;
+				case 2: 
+					return "2, 7";
+					break;
+				case 3: 
+					return "3, 8";
+					break;
+				case 4: 
+					return "4, 9";
+					break;
+				case 5: 
+					return "5, 0";
+					break;
+				default:
+					return false;
+					break;
+			}
+		}
 
 		function getMaskStock(amount) {
 			switch (amount) {
@@ -166,8 +195,12 @@
 				count--;
 				timer.innerText = count;
 			}, 1000);
-			let currentSpot = localStorage.getItem(spot);
+			
+			let day = new Date().getDay(),
+				currentSpot = localStorage.getItem(spot);
+			
 			input.value = currentSpot || "";
+			today.innerText = setBuyYear(day) || "상관없이 모두";
 			currentSpot = getData(currentSpot) || getLocation();
 		})();
 
