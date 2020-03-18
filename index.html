@@ -62,6 +62,7 @@
 	</form>
 	<p class="today">출생년도 끝자리 <span class="year"></span> 구매가능</p>
 	<p class="reload"><span class="timer"></span>초 후 새로고침</p>
+	<div id="map"></div>
 	<div class="table_wrap">
 		<table>
 			<caption>마스크 판매 정보</caption>
@@ -159,6 +160,7 @@
 					return response.json();
 				})
 				.then(function(json) {
+					console.log(json);
 					const data = json.stores;
 					let dataMarkUp = "",
 						dataTemplete;
@@ -167,7 +169,9 @@
 						if (data[i].remain_stat === "plenty") alertFlag = true;
 						dataTemplete = `
 							<tr>
-								<td>${data[i].name}</td>
+								<td>
+									<a href="https://map.kakao.com/link/map/${data[i].name},${data[i].lat},${data[i].lng}" target="_blank" title="새창열림">${data[i].name}</a>
+								</td>
 								<td>${data[i].addr || "데이터없음"}</td>
 								<td>${data[i].created_at || "데이터없음"}</td>
 								<td>${data[i].stock_at || "데이터없음"}</td>
@@ -198,7 +202,7 @@
 			today.innerText = setBuyYear(day) || "상관없이 모두";
 			currentSpot = getData(currentSpot) || getLocation();
 		})();
-
+		
 	</script>
 </body>
 
