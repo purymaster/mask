@@ -9,6 +9,10 @@
 		* {line-height:1.5em; margin:0; padding:0; box-sizing:border-box; font-family:'Helvetica Neue', 'Apple SD Gothic Neo', 'Droid Sans', 'Malgun Gothic', '맑은 고딕', Dotum, 돋움, sans-serif; font-size:100%; color:#333; list-style:none; word-break:keep-all;}
 		body {padding:15px;}
 		h1 {margin-bottom:15px; font-size:24px; text-align:center;}
+		.guide {font-size:14px; margin-bottom:15px;}
+		.guide li {position:relative; padding-left:15px;}
+		.guide li:before {content:""; position:absolute; left:5px; top:8px; width:4px; height:4px; border-radius:50%; background:#333;}
+		.guide li em {font-weight:700; font-style:normal; color:firebrick;}
 		.popup {display:none; margin-bottom:15px; padding:15px; line-height:1.4em; background:darkgreen; font-size:18px; font-weight:700; color:#fff; text-align:center;}
 		.popup.on {display:block;}
 		caption {overflow:hidden; position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip:rect(0 0 0 0);}
@@ -43,7 +47,7 @@
 			table tr:first-child {border-top:1px solid #333;}
 			table th,
 			table td {line-height:1.5em; padding:0; border:0;}
-			table tr td:nth-child(1) {margin-bottom:15px; font-size:16px; font-weight:700;}
+			table tr td:nth-child(1) {margin-bottom:15px; font-size:18px; font-weight:700;}
 			table tr td:nth-child(3) {display:none;}
 			table tr td:nth-child(4):before {content:'입고시간 : ';}
 			table tr td:nth-child(5) {width:auto; margin-top:15px; padding:5px; border:1px solid #333;}
@@ -54,6 +58,12 @@
 <body>
 	<p class="popup">수량이 충분한(100개 이상) 마스크 판매처가 확인되었습니다.</p>
 	<h1>마스크 검색</h1>
+	<ul class="guide">
+		<li>공공데이터의 주소 값을 기반으로 만든 코드 연습용 페이지입니다.</li>
+		<li>주소 입력은 지번 주소만 가능하며, <em>표준명칭 및 띄어쓰기 기준으로 정확하게 입력</em>하셔야합니다.<br>(서울특별시 강남구 청담동, 제주특별자치도 제주시)</li>
+		<li><em>현재 세종특별자치시는 검색 기능을 사용할 수 없습니다.</em></li>
+		<li>인터넷 익스플로러에서는 동작하지 않습니다.</li>
+	</ul>
 	<form>
 		<fieldset>
 			<input type="text" placeholder="주소입력">
@@ -160,7 +170,6 @@
 					return response.json();
 				})
 				.then(function(json) {
-					console.log(json);
 					const data = json.stores;
 					let dataMarkUp = "",
 						dataTemplete;
