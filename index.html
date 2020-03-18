@@ -14,8 +14,8 @@
 		caption {overflow:hidden; position:absolute; width:1px; height:1px; margin:-1px; padding:0; border:0; clip:rect(0 0 0 0);}
 		form {margin-bottom:15px;}
 		fieldset {border:0; font-size:0;}
-		fieldset input {width:calc(100% - 100px); height:40px; line-height:40px; padding:0 15px; border:1px solid #333; border-radius:0; font-size:16px; -webkit-appearance:none; -moz-appearance:none; -ms-appearance:none; -o-appearance:none;}
-		fieldset button {width:100px; line-height:38px; border:1px solid #333; border-left:0; background:#efefef; font-size:16px; cursor:pointer;}
+		fieldset input {width:calc(100% - 50px); height:40px; line-height:40px; padding:0 15px; border:1px solid #333; border-radius:0; font-size:16px; -webkit-appearance:none; -moz-appearance:none; -ms-appearance:none; -o-appearance:none;}
+		fieldset button {width:50px; line-height:38px; border:1px solid #333; border-left:0; background:#efefef; font-size:16px; cursor:pointer;}
 		.today,
 		.reload {line-height:1.5em; font-size:14px; text-align:right;}
 		.today span,
@@ -52,7 +52,7 @@
 </head>
 
 <body>
-	<p class="popup">수량이 충분한 마스크 판매처가 확인되었습니다.</p>
+	<p class="popup">수량이 충분한(100개 이상) 마스크 판매처가 확인되었습니다.</p>
 	<h1>마스크 검색</h1>
 	<form>
 		<fieldset>
@@ -160,27 +160,22 @@
 				})
 				.then(function(json) {
 					const data = json.stores;
-					let dataWrap, dataName, dataAddr, dataUpdate, dataStock, dataStatus;
+					let dataMarkUp = "",
+						dataTemplete;
+
 					for (let i = 0; i < data.length; i++) {
 						if (data[i].remain_stat === "plenty") alertFlag = true;
-						dataWrap = document.createElement("tr");
-						dataName = document.createElement("td");
-						dataAddr = document.createElement("td");
-						dataUpdate = document.createElement("td");
-						dataStock = document.createElement("td");
-						dataStatus = document.createElement("td");
-						dataName.innerText = data[i].name;
-						dataAddr.innerText = data[i].addr || "데이터없음";
-						dataUpdate.innerText = data[i].created_at || "데이터없음";
-						dataStock.innerText = data[i].stock_at || "데이터없음";
-						dataStatus.innerText = getMaskStock(data[i].remain_stat);
-						dataStatus.classList.add(data[i].remain_stat);
-						dataWrap.appendChild(dataName);
-						dataWrap.appendChild(dataAddr);
-						dataWrap.appendChild(dataUpdate);
-						dataWrap.appendChild(dataStock);
-						dataWrap.appendChild(dataStatus);
-						dataTable.appendChild(dataWrap);
+						dataTemplete = `
+							<tr>
+								<td>${data[i].name}</td>
+								<td>${data[i].addr || "데이터없음"}</td>
+								<td>${data[i].created_at || "데이터없음"}</td>
+								<td>${data[i].stock_at || "데이터없음"}</td>
+								<td class="${data[i].remain_stat}">${getMaskStock(data[i].remain_stat)}</td>
+							</tr>
+						`;
+						dataMarkUp += dataTemplete;
+						dataTable.innerHTML = dataMarkUp;
 					}
 					if (alertFlag) document.querySelector(".popup").classList.add('on');
 				});
