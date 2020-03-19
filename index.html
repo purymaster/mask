@@ -60,7 +60,7 @@
 	<p class="popup">수량이 충분한(100개 이상) 마스크 판매처가 확인되었습니다.</p>
 	<h1>마스크 검색</h1>
 	<ul class="guide">
-		<li>공공데이터의 주소 값을 기반으로 만든 코드 연습용 페이지입니다.</li>
+		<li>공공데이터의 주소 값을 기반으로 만든 코딩 연습용 페이지입니다.</li>
 		<li>주소 입력은 지번 주소만 가능하며, <em>표준명칭 및 띄어쓰기 기준으로 정확하게 입력</em>하셔야 합니다.<br>(서울특별시 강남구 청담동, 제주특별자치도 제주시)</li>
 		<li>주소는 <em>읍면동 단위까지 유효</em>합니다. 검색 결과가 존재하지 않을 경우, 상위 행정구역으로 검색 시도 바랍니다.</li>
 		<li><em>현재 세종특별자치시는 검색 기능을 사용할 수 없습니다.</em></li>
@@ -140,8 +140,8 @@
 				default:
 					return false;
 					break;
-			}
-		}
+			};
+		};
 
 		function getMaskStock(amount) {
 			switch (amount) {
@@ -163,7 +163,7 @@
 				default:
 					return "데이터없음";
 					break;
-			}
+			};
 		};
 
 		function getData(location) {
@@ -176,22 +176,31 @@
 					let dataMarkUp = "",
 						dataTemplete;
 
-					for (let i = 0; i < data.length; i++) {
-						if (data[i].remain_stat === "plenty") alertFlag = true;
+					if(data.length) {
+						for (let i = 0; i < data.length; i++) {
+							if (data[i].remain_stat === "plenty") alertFlag = true;
+							dataTemplete = `
+								<tr>
+									<td>
+										<a href="https://map.kakao.com/link/map/${data[i].name},${data[i].lat},${data[i].lng}" target="_blank" title="새창열림">${data[i].name}</a>
+									</td>
+									<td>${data[i].addr || "데이터없음"}</td>
+									<td>${data[i].created_at || "데이터없음"}</td>
+									<td>${data[i].stock_at || "데이터없음"}</td>
+									<td class="${data[i].remain_stat}">${getMaskStock(data[i].remain_stat)}</td>
+								</tr>
+							`;
+							dataMarkUp += dataTemplete;
+							dataTable.innerHTML = dataMarkUp;
+						};
+					} else {
 						dataTemplete = `
 							<tr>
-								<td>
-									<a href="https://map.kakao.com/link/map/${data[i].name},${data[i].lat},${data[i].lng}" target="_blank" title="새창열림">${data[i].name}</a>
-								</td>
-								<td>${data[i].addr || "데이터없음"}</td>
-								<td>${data[i].created_at || "데이터없음"}</td>
-								<td>${data[i].stock_at || "데이터없음"}</td>
-								<td class="${data[i].remain_stat}">${getMaskStock(data[i].remain_stat)}</td>
+								<td colspan="5" style="margin:0; font-size:14px; font-weight:400; text-align:center !important;">검색결과가 존재하지 않습니다.</td>
 							</tr>
 						`;
-						dataMarkUp += dataTemplete;
-						dataTable.innerHTML = dataMarkUp;
-					}
+						dataTable.innerHTML = dataTemplete;
+					};
 					if (alertFlag) document.querySelector(".popup").classList.add('on');
 				});
 			getLocation();
