@@ -24,7 +24,12 @@
 		.reload {line-height:1.5em; font-size:14px; text-align:right;}
 		.today span,
 		.reload span {color:firebrick; font-weight:700;}
-		table {width:100%; margin-top:15px; table-layout:fixed; border-top:1px solid #333; border-right:1px solid #333; background:#fff; font-size:14px; border-spacing:0; border-collapse:collapse;}
+		.table_wrap {position:relative; margin-top:15px;}
+		.table_wrap:before {content:""; display:none; position:absolute; top:0; right:0; bottom:0; left:0; background:#fff;}
+		.table_wrap.on:before {display:block;}
+		.table_wrap .loading {display:none; position:absolute; top:0; left:50%; width:40px; height:40px; margin-left:-25px; border:5px solid #ccc; border-top:5px solid #333; border-radius:50%; text-indent:-9999px; -webkit-animation:spin 1s linear infinite; animation:spin 1s linear infinite;}
+		.table_wrap.on .loading {display:block;}
+		table {width:100%; table-layout:fixed; border-top:1px solid #333; border-right:1px solid #333; background:#fff; font-size:14px; border-spacing:0; border-collapse:collapse;}
 		table th,
 		table td {padding:.5em .3em; border-bottom:1px solid #333; border-left:1px solid #333;}
 		table thead th {background:azure;}
@@ -37,6 +42,8 @@
 
 		@media (max-width:1024px) {
 			.table_wrap {overflow:hidden;}
+			.table_wrap:before {position:fixed;}
+			.table_wrap .loading {position:fixed; top:50%; margin-top:-25px;}
 			table,
 			tbody,
 			tr,
@@ -51,6 +58,14 @@
 			table tr td:nth-child(3) {display:none;}
 			table tr td:nth-child(4):before {content:'입고시간 : ';}
 			table tr td:nth-child(5) {width:auto; margin-top:15px; padding:5px; border:1px solid #333;}
+		}
+
+		@-webkit-keyframes spin {
+			to {-webkit-transform: rotate(360deg); transform: rotate(360deg);}
+		}
+
+		@keyframes spin {
+			to {-webkit-transform: rotate(360deg); transform: rotate(360deg);}
 		}
 	</style>
 	
@@ -76,6 +91,9 @@
 	<p class="reload"><span class="timer"></span>초 후 새로고침</p>
 	
 	<div class="table_wrap">
+		<div class="loading">
+			<p>로딩중입니다.</p>
+		</div>
 		<table>
 			<caption>마스크 판매 정보</caption>
 			<colgroup>
@@ -101,6 +119,7 @@
 
 	<script>
 		const dataTable = document.querySelector("tbody"),
+			loading = document.querySelector(".table_wrap"),
 			form = document.querySelector("form"),
 			input = form.querySelector("input"),
 			timer = document.querySelector(".timer"),
@@ -167,6 +186,7 @@
 		};
 
 		function getData(location) {
+			loading.classList.add('on');
 			fetch(`https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json?address=${location}`)
 				.then(function(response) {
 					return response.json();
@@ -175,7 +195,7 @@
 					const data = json.stores;
 					let dataMarkUp = "",
 						dataTemplete;
-
+					
 					if(data.length) {
 						for (let i = 0; i < data.length; i++) {
 							if (data[i].remain_stat === "plenty") alertFlag = true;
@@ -191,6 +211,7 @@
 								</tr>
 							`;
 							dataMarkUp += dataTemplete;
+							loading.classList.remove('on');
 							dataTable.innerHTML = dataMarkUp;
 						};
 					} else {
@@ -199,6 +220,7 @@
 								<td colspan="5" style="margin:0; font-size:14px; font-weight:400; text-align:center !important;">검색결과가 존재하지 않습니다.</td>
 							</tr>
 						`;
+						loading.classList.remove('on');
 						dataTable.innerHTML = dataTemplete;
 					};
 					if (alertFlag) document.querySelector(".popup").classList.add('on');
