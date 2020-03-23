@@ -6,52 +6,36 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>마스크 검색</title>
 	<style>
-		* {
-			line-height: 1.5em;
-			margin: 0;
-			padding: 0;
-			box-sizing: border-box;
-			font-family: 'Helvetica Neue', 'Apple SD Gothic Neo', 'Droid Sans', 'Malgun Gothic', '맑은 고딕', Dotum, 돋움, sans-serif;
-			font-size: 100%;
-			color: #333;
-			list-style: none;
-			word-break: keep-all;
-		}
-
-		body {
-			padding: 15px;
-		}
-
-		h1 {
-			margin-bottom: 15px;
-			font-size: 24px;
-			text-align: center;
-		}
-
-		#map {
-			width: 100%;
-			height: calc(100vh - 100px);
-		}
+		* {line-height:1.5em; margin:0; padding:0; box-sizing:border-box; font-family:'Helvetica Neue', 'Apple SD Gothic Neo', 'Droid Sans', 'Malgun Gothic', '맑은 고딕', Dotum, 돋움, sans-serif; font-size:100%; color:#333; list-style:none; word-break:keep-all;}
+		body {padding:15px;}
+		h1 {margin-bottom:15px; font-size:24px; text-align:center;}
+		input[type='range'] {display:block; width:80%; margin:15px auto;}
+		.guide {margin:15px 0; font-size:12px; text-align:center;}
+		.guide span {color:firebrick; font-weight:700;}
+		#map {width:100%; height:calc(100vh - 150px);}
+		.info {margin-top:-55px; padding:0 3px; border:1px solid #000; border-radius:3px; background:#fff;}
+		.info a {display:block; line-height:1.5em; font-size:14px; text-decoration:none;}
 	</style>
 </head>
 
 <body>
 
 	<h1>마스크 검색</h1>
-	<input type="range" min="100" max="5000" value="1000" step="100" id="range" style="width:100%;">
+	<input type="range" min="0" max="5000" value="1000" step="200" id="range">
+	<p class="guide">현 위치 기준 반경 <span id="distance">1000m</span>의 판매처를 검색합니다.</p>
 	<div id="map"></div>
 
-	<script type="text/javascript"
-		src="//dapi.kakao.com/v2/maps/sdk.js?appkey=f164c351143842dcf294f0d038f8e54c"></script>
+	<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=f164c351143842dcf294f0d038f8e54c"></script>
 	<script>
 
 		var range = document.querySelector("#range");
 		range.addEventListener("change", function () {
+			document.querySelector("#distance").innerText = this.value + 'm';
 			getLocation(this.value);
 		});
 
 		function getLocation(dist) {
-			dist = dist || 1000;
+			dist = dist || range.value;
 			if (navigator.geolocation) {
 				navigator.geolocation.getCurrentPosition(function (position) {
 					getData(position.coords.latitude, position.coords.longitude, dist)
@@ -67,82 +51,84 @@
 			};
 		};
 
-		function getData(lat, lng, m) {
-			fetch(`https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByGeo/json?lat=${lat}&lng=${lng}&m=${m}`)
+		function getData(lat, lng, dist) {
+			fetch(`https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByGeo/json?lat=${lat}&lng=${lng}&m=${dist}`)
 				.then(function (response) {
 					return response.json();
 				})
 				.then(function (json) {
 					const data = json.stores;
-					console.log(data);
-
-					var container = document.getElementById('map');
-
-					var options = {
-						center: new kakao.maps.LatLng(lat, lng),
-						level: 3
-					};
-
-					var map = new kakao.maps.Map(container, options);
-
-					var few = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAdCAYAAACqhkzFAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjE5QjVDNjg1NkE3RjExRUFBMDg1QTQwNzI3NDNBOEM3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjE5QjVDNjg2NkE3RjExRUFBMDg1QTQwNzI3NDNBOEM3Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MTlCNUM2ODM2QTdGMTFFQUEwODVBNDA3Mjc0M0E4QzciIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MTlCNUM2ODQ2QTdGMTFFQUEwODVBNDA3Mjc0M0E4QzciLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4fkKmfAAABs0lEQVR42qyWTyhEQRzH33vWzU05SNLelJAiSimFy3IhwsoB5SA57EVbyoUtBycHLnugxIHyN0rZgxwo4uBP4eJPlOxBiQO+v5pX02t+s2/fe7/61L75zXya2Zn5vWduhMMGExFBNSgGJngEp2AbrKsGhRRtjWAa1Chy+aACDIALEAdbcgfLMSAGDhiZM8rBJpjkhGNgxsg+JmSpLawEs4b3IGmDLFw0/MeSvSn1oEzTkXZ2F/yCJsAdiyI6FSTs0chWQR/4Ec90dBbAINM/SkuuY5IPoEuSUfyBIXDJjKkiYQmTTGpmPs+0F5Awl0m+a4QfTHsOCV+YZJtGGGHa0yQ8Z5ItoFPR3gy6mTE3tMsp0MF0WAG1YE0cG5rZuGbmKRPVphA/noxgopSW/AwOA5BR9bm2r14iAGFCvst74M6H7A0sO8vXqA9hTFUPd8CZB9m9XK2cFbvXgzCqewVcgbksZHROj3VCihHw6kL2CfqdjRbTudWFsB18uxWegKkM5WtflbA0g+JC7IxbMMwNsjIsiyrLl+JDwPAqTIsXk1wHtYUk5OLPPxL3NE9802jjX4ABAAegSwwNM50zAAAAAElFTkSuQmCC',
-						some = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAdCAYAAACqhkzFAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjNENDY0RjY0NkE3RjExRUE4MTMxRTI5Q0E4NTlFMkQyIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjNENDY0RjY1NkE3RjExRUE4MTMxRTI5Q0E4NTlFMkQyIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6M0Q0NjRGNjI2QTdGMTFFQTgxMzFFMjlDQTg1OUUyRDIiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6M0Q0NjRGNjM2QTdGMTFFQTgxMzFFMjlDQTg1OUUyRDIiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz45sLpTAAABqElEQVR42qyWTShEURTH7xtjZylKklhIIRZkYSGFzbAhhbGzlsVspJQNU9YWbCzYsBgLpJTyFlLIyMZnbHylZBZKLPA/dV+9Xu+c9/mv3zSdd++/c8+979xn/F0qTilNK6gCBngEp2AHbLpNMlwMu8A8aFOyLsA02LYHE45BGbDvw4zUBLbALGc4CRZUcM3YTa0lN4O8iqZOYFoZrqroWqOfJOgADcJA2tld8Au6QQ0zrpJOBRmOCGYbYAz8WCUCy2CcGZ+mGuZ1DZ16ELKhI9PoEr+lGlYzk1aEzJeYeBkZFjMP3wXDDyZeRIYvzMN+wTDFxAtkeM487AVDLvEeMMzMuaZdNsEgM2AdtIOcPjaU2ZSQuUm7XIE/Tyoe1dOSn8FBDGZ0lK6sVy8bg2HW2Q/vQG1IszdQ7mxfExGyy3Ad+wy0BDS7t6/M2bFHQ2SXlq4AyncxgBmd0yOvS4r0ahVZ0CcoBd9Shpb6fGQ34DSTDE/AnEf72vN7L9t1rC96u25AHTch4bEs6ixfLh8CKqxhQV9M9j4oNpKkj+If6ve0RH/TiPoXYAD0uFYnocw32QAAAABJRU5ErkJggg==',
-						plenty = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAdCAYAAACqhkzFAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjVFMEY3OThGNkE3RjExRUFBNDYwRDFCMEExMUM3RUVCIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjVFMEY3OTkwNkE3RjExRUFBNDYwRDFCMEExMUM3RUVCIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NUUwRjc5OEQ2QTdGMTFFQUE0NjBEMUIwQTExQzdFRUIiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NUUwRjc5OEU2QTdGMTFFQUE0NjBEMUIwQTExQzdFRUIiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz6UG1dgAAABtElEQVR42qyWTShEURTHz7wZZWcjCkkspCw0RSlFCqVhI4SxY2Eji9nZMxsLCws21NiwsfFRVqwUilj4SCx8pmQWJBb4n7pP1+ud+2bem3/96r1z7v137333nvtCNEKSYop6UA5C4A4cgg2w5tYp5GLYCqZBA5l1AibBuh4MU/RfowRYBqXkrWIwCCyw42Y4AWYoezXrpvaU68ARBVML2LXUS4qCi5eKIqAJ1Boa8pfdAt+gDVQK7cp4V0TUwkpaBcPg629XEC0AabPFecqNQvIG9GtmrB8wCk6FPlE2rBCSi4aRzwvxIjbME5IvBsNXIR5mw0ch2W0wjAnxNBseC8kO0OcSbwcDQp8LPil8hDqFBr2gALyrbTFmWD/WEp+UEjzcU25Uw1N+0A93AHH1ObePXjIHhklnPbwCVT7NnlU5I0sLjgcYXcJ+0A03fZawa71aWY7kkA/DuP7iNDwDc1mYrYA9r0uK9WQvskFvoBB8mkZoqyuD0fU4zUyGB2DKo3xtZ3ov69pXF72uS1AtdbA8psWV5cPlR4D8GqbVxaTXQWMhcf45uOkW5Ku6OevV+FeAAQBl6UlUEpsGWwAAAABJRU5ErkJggg==';
-
-
-					// 빨강, 노랑, 녹색
-					//data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAdCAYAAACqhkzFAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjE5QjVDNjg1NkE3RjExRUFBMDg1QTQwNzI3NDNBOEM3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjE5QjVDNjg2NkE3RjExRUFBMDg1QTQwNzI3NDNBOEM3Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6MTlCNUM2ODM2QTdGMTFFQUEwODVBNDA3Mjc0M0E4QzciIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6MTlCNUM2ODQ2QTdGMTFFQUEwODVBNDA3Mjc0M0E4QzciLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz4fkKmfAAABs0lEQVR42qyWTyhEQRzH33vWzU05SNLelJAiSimFy3IhwsoB5SA57EVbyoUtBycHLnugxIHyN0rZgxwo4uBP4eJPlOxBiQO+v5pX02t+s2/fe7/61L75zXya2Zn5vWduhMMGExFBNSgGJngEp2AbrKsGhRRtjWAa1Chy+aACDIALEAdbcgfLMSAGDhiZM8rBJpjkhGNgxsg+JmSpLawEs4b3IGmDLFw0/MeSvSn1oEzTkXZ2F/yCJsAdiyI6FSTs0chWQR/4Ec90dBbAINM/SkuuY5IPoEuSUfyBIXDJjKkiYQmTTGpmPs+0F5Awl0m+a4QfTHsOCV+YZJtGGGHa0yQ8Z5ItoFPR3gy6mTE3tMsp0MF0WAG1YE0cG5rZuGbmKRPVphA/noxgopSW/AwOA5BR9bm2r14iAGFCvst74M6H7A0sO8vXqA9hTFUPd8CZB9m9XK2cFbvXgzCqewVcgbksZHROj3VCihHw6kL2CfqdjRbTudWFsB18uxWegKkM5WtflbA0g+JC7IxbMMwNsjIsiyrLl+JDwPAqTIsXk1wHtYUk5OLPPxL3NE9802jjX4ABAAegSwwNM50zAAAAAElFTkSuQmCC
-					//data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAdCAYAAACqhkzFAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjNENDY0RjY0NkE3RjExRUE4MTMxRTI5Q0E4NTlFMkQyIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjNENDY0RjY1NkE3RjExRUE4MTMxRTI5Q0E4NTlFMkQyIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6M0Q0NjRGNjI2QTdGMTFFQTgxMzFFMjlDQTg1OUUyRDIiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6M0Q0NjRGNjM2QTdGMTFFQTgxMzFFMjlDQTg1OUUyRDIiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz45sLpTAAABqElEQVR42qyWTShEURTH7xtjZylKklhIIRZkYSGFzbAhhbGzlsVspJQNU9YWbCzYsBgLpJTyFlLIyMZnbHylZBZKLPA/dV+9Xu+c9/mv3zSdd++/c8+979xn/F0qTilNK6gCBngEp2AHbLpNMlwMu8A8aFOyLsA02LYHE45BGbDvw4zUBLbALGc4CRZUcM3YTa0lN4O8iqZOYFoZrqroWqOfJOgADcJA2tld8Au6QQ0zrpJOBRmOCGYbYAz8WCUCy2CcGZ+mGuZ1DZ16ELKhI9PoEr+lGlYzk1aEzJeYeBkZFjMP3wXDDyZeRIYvzMN+wTDFxAtkeM487AVDLvEeMMzMuaZdNsEgM2AdtIOcPjaU2ZSQuUm7XIE/Tyoe1dOSn8FBDGZ0lK6sVy8bg2HW2Q/vQG1IszdQ7mxfExGyy3Ad+wy0BDS7t6/M2bFHQ2SXlq4AyncxgBmd0yOvS4r0ahVZ0CcoBd9Shpb6fGQ34DSTDE/AnEf72vN7L9t1rC96u25AHTch4bEs6ixfLh8CKqxhQV9M9j4oNpKkj+If6ve0RH/TiPoXYAD0uFYnocw32QAAAABJRU5ErkJggg==
-					//data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAdCAYAAACqhkzFAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOjVFMEY3OThGNkE3RjExRUFBNDYwRDFCMEExMUM3RUVCIiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOjVFMEY3OTkwNkE3RjExRUFBNDYwRDFCMEExMUM3RUVCIj4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6NUUwRjc5OEQ2QTdGMTFFQUE0NjBEMUIwQTExQzdFRUIiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6NUUwRjc5OEU2QTdGMTFFQUE0NjBEMUIwQTExQzdFRUIiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz6UG1dgAAABtElEQVR42qyWTShEURTHz7wZZWcjCkkspCw0RSlFCqVhI4SxY2Eji9nZMxsLCws21NiwsfFRVqwUilj4SCx8pmQWJBb4n7pP1+ud+2bem3/96r1z7v137333nvtCNEKSYop6UA5C4A4cgg2w5tYp5GLYCqZBA5l1AibBuh4MU/RfowRYBqXkrWIwCCyw42Y4AWYoezXrpvaU68ARBVML2LXUS4qCi5eKIqAJ1Boa8pfdAt+gDVQK7cp4V0TUwkpaBcPg629XEC0AabPFecqNQvIG9GtmrB8wCk6FPlE2rBCSi4aRzwvxIjbME5IvBsNXIR5mw0ch2W0wjAnxNBseC8kO0OcSbwcDQp8LPil8hDqFBr2gALyrbTFmWD/WEp+UEjzcU25Uw1N+0A93AHH1ObePXjIHhklnPbwCVT7NnlU5I0sLjgcYXcJ+0A03fZawa71aWY7kkA/DuP7iNDwDc1mYrYA9r0uK9WQvskFvoBB8mkZoqyuD0fU4zUyGB2DKo3xtZ3ov69pXF72uS1AtdbA8psWV5cPlR4D8GqbVxaTXQWMhcf45uOkW5Ku6OevV+FeAAQBl6UlUEpsGWwAAAABJRU5ErkJggg==
-
-					imageSrc = "",
-					imageSize = new kakao.maps.Size(20, 29),
-						imageOption = { offset: new kakao.maps.Point(10, 29) };
-
-					for (var i = 0; i < data.length; i++) {
-						if (data[i].remain_stat === "empty") continue;
-						if (data[i].remain_stat === "break") continue;
-						if (data[i].remain_stat === null) continue;
-						console.log(data[i].remain_stat)
-						switch (data[i].remain_stat) {
-							case "plenty" : imageSrc = plenty; break;
-							case "some" : imageSrc = some; break;
-							case "few" : imageSrc = few; break;
-						}
-						var iwContent = `
-							<div style="padding:5px; text-align:center; font-size:12px;">
-								${data[i].name}
-							</div>
-							`;
-							//<a href="https://map.kakao.com/link/map/${data[i].name},${data[i].lat},${data[i].lng}" target="_blank">자세히보기</a>
-						var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
-						var markerPosition = new kakao.maps.LatLng(data[i].lat, data[i].lng);
-						var marker = new kakao.maps.Marker({
-							position: markerPosition,
-							image: markerImage
-						});
-						var infowindow = new kakao.maps.InfoWindow({
-							position: markerPosition,
-							content: iwContent
-						});
-						infowindow.open(map, marker);
-						marker.setMap(map);
-
-					}
-
-
-
-
-
-
-
+					mapDraw(lat, lng, dist, data);
 				});
 		};
 
+		function mapDraw(lat, lng, dist, data) {
+			var container = document.getElementById('map');
+
+			var map = new kakao.maps.Map(container, {
+				center: new kakao.maps.LatLng(lat, lng),
+				level: 4
+			});
+
+			var few = 'img/ico_few.png';
+			some = 'img/ico_some.png';
+			plenty = 'img/ico_plenty.png';
+			imageSrc = "",
+				imageSize = new kakao.maps.Size(20, 28),
+				imageOption = { offset: new kakao.maps.Point(10, 28) };
+
+			for (var i = 0; i < data.length; i++) {
+				if (data[i].remain_stat === "empty") continue;
+				if (data[i].remain_stat === "break") continue;
+				if (data[i].remain_stat === null) continue;
+				if (data[i].remain_stat === undefined) continue;
+				switch (data[i].remain_stat) {
+					case "plenty": imageSrc = plenty; break;
+					case "some": imageSrc = some; break;
+					case "few": imageSrc = few; break;
+				}
+
+				var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+				var markerPosition = new kakao.maps.LatLng(data[i].lat, data[i].lng);
+				var marker = new kakao.maps.Marker({
+					position: markerPosition,
+					image: markerImage
+				});
+
+				var content = `
+					<div class="info">
+						<a href="https://map.kakao.com/link/map/${data[i].name},${data[i].lat},${data[i].lng}" target="_blank">
+							${data[i].name}
+						</a>
+					</div>
+				`;
+
+				var customOverlay = new kakao.maps.CustomOverlay({
+					map: map,
+					position: markerPosition,
+					content: content,
+					yAnchor: 1
+				});
+
+				marker.setMap(map);
+
+			}
+
+			var circle = new kakao.maps.Circle({
+				map: map,
+				center: new kakao.maps.LatLng(lat, lng),
+				radius: dist,
+				strokeWeight: 0,
+				strokeColor: '#000',
+				strokeOpacity: 0,
+				strokeStyle: 'solid',
+				fillColor: 'steelblue',
+				fillOpacity: .25
+			});
+		}
+
 		(function init() {
-
 			getLocation();
-
 		})();
 
 	</script>
