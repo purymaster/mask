@@ -62,7 +62,7 @@
 	<h1>공적마스크 정보</h1>
 	<ul class="menu">
 		<li>
-			<a href="/">주소 검색</a>
+			<a href="index.html">주소 검색</a>
 		</li>
 		<li class="on">
 			<a href="map.html">지도 검색</a>
@@ -274,7 +274,7 @@
 			}, 1000);
 
 			let day = new Date().getDay();
-			
+
 			if (getCookie("map") !== "n") document.querySelector(".popup").classList.add("on");
 			today.innerText = setBuyYear(day) || "상관없이 모두";
 			getLocation();
