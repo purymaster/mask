@@ -182,6 +182,7 @@
 				few = 'img/ico_few.png',
 				some = 'img/ico_some.png',
 				plenty = 'img/ico_plenty.png',
+				human = 'img/ico_user.png',
 				imageSize = new kakao.maps.Size(20, 28),
 				imageOption = { offset: new kakao.maps.Point(10, 28) },
 				noStock = ["empty", "break", null, undefined];
@@ -239,13 +240,22 @@
 				fillOpacity: .25
 			});
 
+			const userImage = new kakao.maps.MarkerImage(human, imageSize, imageOption),
+				userPosition = new kakao.maps.LatLng(lat, lng),
+				user = new kakao.maps.Marker({
+					position: userPosition,
+					image: userImage
+				});
+
+			user.setMap(map);
+
 			if (!markerCnt) loading.classList.add('out');
 			loading.classList.remove('on');
 		};
 
 		function getCookie(name) {
-			const cookies = document.cookie.split("; "); 
-			for(let i in cookies) {
+			const cookies = document.cookie.split("; ");
+			for (let i in cookies) {
 				if (cookies[i].search(name) !== -1) {
 					return cookies[i].split("=")[1];
 				};
@@ -265,10 +275,10 @@
 		};
 
 		(function init() {
-			setTimeout(function() {
+			setTimeout(function () {
 				location.reload();
 			}, 1000 * count);
-			setInterval(function() {
+			setInterval(function () {
 				count--;
 				timer.innerText = count;
 			}, 1000);
