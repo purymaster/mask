@@ -221,10 +221,10 @@
 		function getData(location) {
 			loading.classList.add('on');
 			fetch(`https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByAddr/json?address=${location}`)
-				.then(function (response) {
+				.then(response => {
 					return response.json();
 				})
-				.then(function (json) {
+				.then(json => {
 					const data = json.stores;
 					let dataMarkUp = "",
 						dataTemplete;
@@ -261,8 +261,8 @@
 		};
 
 		function getCookie(name) {
-			const cookies = document.cookie.split("; "); 
-			for(let i in cookies) {
+			const cookies = document.cookie.split("; ");
+			for (let i in cookies) {
 				if (cookies[i].search(name) !== -1) {
 					return cookies[i].split("=")[1];
 				};
@@ -282,10 +282,10 @@
 		};
 
 		(function init() {
-			setTimeout(function () {
+			setTimeout(() => {
 				location.reload();
 			}, 1000 * count);
-			setInterval(function () {
+			setInterval(() => {
 				count--;
 				timer.innerText = count;
 			}, 1000);

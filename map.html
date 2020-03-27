@@ -115,7 +115,7 @@
 			count = 180;
 		timer.innerHTML = count;
 
-		rangeBar.addEventListener("change", function () {
+		rangeBar.addEventListener("change", () => {
 			document.querySelector("#distance").innerText = this.value + 'm';
 			getLocation(this.value);
 		});
@@ -123,9 +123,9 @@
 		function getLocation(dist) {
 			dist = dist || rangeBar.value;
 			if (navigator.geolocation) {
-				navigator.geolocation.getCurrentPosition(function (position) {
+				navigator.geolocation.getCurrentPosition(position => {
 					getData(position.coords.latitude, position.coords.longitude, dist)
-				}, function (error) {
+				}, error => {
 					console.error(error);
 				}, {
 					enableHighAccuracy: false,
@@ -164,10 +164,10 @@
 			loading.classList.remove('out')
 			loading.classList.add('on');
 			fetch(`https://8oi9s0nnth.apigw.ntruss.com/corona19-masks/v1/storesByGeo/json?lat=${lat}&lng=${lng}&m=${dist}`)
-				.then(function (response) {
+				.then(response => {
 					return response.json();
 				})
-				.then(function (json) {
+				.then(json => {
 					const data = json.stores;
 					mapDraw(lat, lng, dist, data);
 				});
@@ -175,10 +175,7 @@
 
 		function mapDraw(lat, lng, dist, data) {
 			const container = document.getElementById('map'),
-				map = new kakao.maps.Map(container, {
-					center: new kakao.maps.LatLng(lat, lng),
-					level: 4
-				}),
+				map = new kakao.maps.Map(container, { center: new kakao.maps.LatLng(lat, lng), level: 4 }),
 				few = 'img/ico_few.png',
 				some = 'img/ico_some.png',
 				plenty = 'img/ico_plenty.png',
@@ -275,10 +272,10 @@
 		};
 
 		(function init() {
-			setTimeout(function () {
+			setTimeout(() => {
 				location.reload();
 			}, 1000 * count);
-			setInterval(function () {
+			setInterval(() => {
 				count--;
 				timer.innerText = count;
 			}, 1000);
