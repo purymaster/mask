@@ -115,7 +115,7 @@
 			count = 180;
 		timer.innerHTML = count;
 
-		rangeBar.addEventListener("change", () => {
+		rangeBar.addEventListener("change", function () {
 			document.querySelector("#distance").innerText = this.value + 'm';
 			getLocation(this.value);
 		});
